@@ -255,6 +255,7 @@ def bt_irq(event, data):
             print(ADV_TYPES[adv_type])
             print("{addr: ", dumpHex(addr), ", addr_type: ",
                   repr(addr_type), ", rssi:", repr(rssi), "}")
+            print("RAW ADV_DATA: %s" %(dumpHex(adv_data),) )
             dumpAdvData(adv_data)
             print("\r\n")
 
