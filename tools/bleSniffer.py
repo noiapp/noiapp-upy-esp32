@@ -209,8 +209,8 @@ COMPANY_IDENTIFIER = {
 def uuidStr(data):
     uuid="_INVALID_"
     if len(data)>=16:
-        codes = unpack("<LHHHLH", data)
-        uuid = "%08X-%02X-%02X-%02X-%010X" %(codes[0], codes[1], codes[2], codes[3], codes[4]|codes[5]<<32,)
+        codes = unpack("<LHHHHL", data)
+        uuid = "%08X-%02X-%02X-%02X-%010X" %(codes[5], codes[4], codes[3], codes[2], codes[0]|codes[1]<<32,)
     return uuid
 
 def dumpHex(data):
