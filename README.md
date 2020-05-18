@@ -1,4 +1,4 @@
-# NOIAPP micropython apps & tools for EPS32
+# NOIAPP micropython apps & tools for ESP32
 
 This project contains micropython implementations to interact with BLE with contact tracing devices.
 
