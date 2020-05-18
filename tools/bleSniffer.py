@@ -5,7 +5,6 @@ from bleADV import ADV_TYPES, dumpHex, dumpAdvData
 IRQ_SCAN_RESULT = const(1 << 4)
 IRQ_SCAN_COMPLETE = const(1 << 5)
 
-
 def bt_irq(event, data):
     if event == IRQ_SCAN_RESULT:
         # A single scan result.
@@ -22,14 +21,20 @@ def bt_irq(event, data):
         # Scan duration finished or manually stopped.
         print('scan complete')
 
-def main():
+def sniffer(time):
     # Scan continuosly
     bt = BLE()
     bt.active(True)
     bt.irq(handler=bt_irq)
-    print("Start scanning....", end="")
-    bt.gap_scan(0, 10, 10)
+    print("Scanning for %dms..." % time, end="")
+    bt.gap_scan(time, 10, 10)
     print("DONE!")
 
 if __name__ == '__main__':
-    main()
+    print(args)
+    if len(args) > 1:
+        time = int(args[1])
+    else:
+        time = 0
+    print(time)
+    sniffer(time)
