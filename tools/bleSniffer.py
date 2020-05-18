@@ -264,9 +264,10 @@ def bt_irq(event, data):
         print('scan complete')
 
 # Scan continuosly
-bt = BLE()
-bt.active(True)
-bt.irq(handler=bt_irq)
-print("Start scanning....", end="")
-bt.gap_scan(0, 10, 10)
-print("DONE!")
+def main():
+    bt = BLE()
+    bt.active(True)
+    bt.irq(handler=bt_irq)
+    print("Start scanning....", end="")
+    bt.gap_scan(0, 10, 10)
+    print("DONE!")

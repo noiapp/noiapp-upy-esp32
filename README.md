@@ -22,42 +22,27 @@ To play with this software you neeed:
 
 TBD
 
+## Installing
+
+Prerequisites: you need python3 with pyserial and a bash shell (Linux/Mac/Windows with Git Bash)
+
+Run:
+
+`./setup.sh <serial>`
+
+where `<serial>` is the name of your serial device.
+
+## Run
+
+You can now run the tools by name (currently only bleSniffer) with:
+
+`./run bleSniffer`
+
 ## Tools
 
 ### BLE sniffer
 
 This simple tool scan for [BLE advertising](https://www.argenox.com/library/bluetooth-low-energy/ble-advertising-primer/) and output some information to help beacon analysis.
-
-#### Upload on board
-
-Using esptool you can upload on yor esp32 module with
-
-```
-ampy -p <your_serial_device> put tools
-```
-
-on Linux is something like
-
-```
-ampy -p /dev/ttyUSBx put tools
-```
-
-You can use [webrepl](http://docs.micropython.org/en/latest/esp32/quickref.html?highlight=webrepl#webrepl-web-browser-interactive-prompt) to upload the file and get results.
-
-#### Running the sniffer
-
-Once uploaded the sniffer can be run with
-
-```
-ampy -p /dev/ttyUSBx run tools/bleSniffer.py
-```
-
-or importing on micropython REPL
-
-```
->>> uos.chdir('tools')
->>> import bleSniffer.py
-```
 
 ## Contributing
 
