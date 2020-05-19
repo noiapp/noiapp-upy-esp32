@@ -8,6 +8,7 @@ ADV_TYPES = {
     0x04: "[SCAN_RSP] scan response"
 }
 
+# see https://www.bluetooth.com/specifications/assigned-numbers/generic-access-profile/
 ADV_DATA_TYPES = {
     0x01: "Flags",
     0x02: "Incomplete List of 16-bit Serv Class UUIDs",
@@ -20,18 +21,14 @@ ADV_DATA_TYPES = {
     0x09: "Complete Local Name",
     0x0A: "Tx Power Level",
     0x0D: "Class of Device",
-    0x0E: "Simple Pairing Hash C",
     0x0E: "Simple Pairing Hash C-192",
-    0x0F: "Simple Pairing Randomizer R",
     0x0F: "Simple Pairing Randomizer R-192",
-    0x10: "Device ID",
-    0x10: "Security Manager TK Value",
+    0x10: "Dev ID/Sec Mngr TK Val",
     0x11: "Security Manager Out of Band Flags",
     0x12: "Slave Connection Interval Range",
     0x14: "List of 16-bit Serv Solicitation UUIDs",
     0x15: "List of 128-bit Serv Solicitation UUIDs",
-    0x16: "Serv Data",
-    0x16: "Serv Data - 16-bit UUID",
+    0x16: "Serv Data 16-bit UUID",
     0x17: "Public Target Address",
     0x18: "Random Target Address",
     0x19: "Appearance",
