@@ -16,33 +16,38 @@ To play with this software you neeed:
   
   * [Micropython](https://micropython.org/download/esp32/ "Microypython") on the board, see [here](https://docs.micropython.org/en/latest/esp32/tutorial/intro.html#deploying-the-firmware)
   * [esptool](https://github.com/espressif/esptool/ "esptool")
-  * Adafruit MicroPython Tool ([ampy](https://github.com/scientifichackers/ampy))
+  * A local version of Python3 with pyserial library
+  * A bash shell (Linux/Mac/Windows with Git Bash)
 
-## NoiApp for esp32
 
-TBD
-
-## Installing
-
-Prerequisites: you need python3 with pyserial and a bash shell (Linux/Mac/Windows with Git Bash)
-
-Run:
+### Installing
 
 `./setup.sh <serial>`
 
 where `<serial>` is the name of your serial device.
 
-## Run
+### Executing
 
-You can now run the tools by name (currently only bleSniffer) with:
+You can now run the tools by name with:
 
-`./run bleSniffer`
+`./run.sh <tool> [-f] args...`
+
+where 
+- `<tool>` is the name of the script in `tools` without `.py`
+- `-f` follow the output indefinitely (press ^C to interrupt)
+- you can pass multiple args as strings (but do not put single quotes in it!)
+
+args are then available inside the script in the array `args` as strings, and args[0] is the script name.
 
 ## Tools
 
 ### BLE sniffer
 
 This simple tool scan for [BLE advertising](https://www.argenox.com/library/bluetooth-low-energy/ble-advertising-primer/) and output some information to help beacon analysis.
+
+usage: `./run.sh bleSniffer -f 2000`
+
+the `2000` is the number of milliseconds it must be listening.
 
 ## Contributing
 
