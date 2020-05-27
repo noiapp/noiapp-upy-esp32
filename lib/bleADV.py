@@ -1,5 +1,6 @@
 from struct import unpack
 
+
 ADV_TYPES = {
     0x00: "[IND] connectable and scannable undirected advertising",
     0x01: "[DIRECT_IND] connectable directed advertising",
@@ -153,6 +154,7 @@ COMPANY_IDENTIFIER = {
     0x0000: "Ericsson Technology Licensing"
 }
 
+
 def uuidStr(data):
     uuid="_INVALID_"
     if len(data)>=16:
@@ -161,35 +163,90 @@ def uuidStr(data):
     return uuid
 
 def dumpHex(data):
-    return "".join('{:02X} '.format(a) for a in data)
+    return "".join('{:02X} '.format(a) for a in data)[:-1]
 
-def dumpManufacter(data):
-    manCode = data[0] | data[1] << 8
-    try:
-        manName = COMPANY_IDENTIFIER[manCode]
-    except:
-        manName = "_UNKNOWN_"
-    print("\tMANUFACTER:", manName, "[0x%04X]" %(manCode,))
-    print("\t%s" %(dumpHex(data[2:]),) )
 
-def dumpUUID(data):
-    print("\t%s" %(uuidStr(data),))
+class ADVData:
+    def __init__(self, typeid, pdu):
+        self.typeid = typeid
+        self.pdu = pdu
+
+    def getTypeStr(self):
+        return "\t%s %s" %("[{:02X}]: ".format(self.typeid), ADV_DATA_TYPES[self.typeid],)
+
+    def __repr__(self):
+        s = self.getTypeStr()
+        s += "\r\n\tdata: [%s]" %(dumpHex(self.pdu), )
+        return s
+        
+    def __str__(self):
+        return self.__repr__()
+
+class ADVManufacter(ADVData):
+    def __init__(self, typeid, pdu):
+        super().__init__(typeid, pdu)
+        self.manCode = pdu[0] | pdu[1] << 8
+        if self.manCode in COMPANY_IDENTIFIER:
+            self.manName = COMPANY_IDENTIFIER[self.manCode]
+        else:
+            self.manName = "_UNKNOWN_"
+    
+    def __repr__(self):
+        s = self.getTypeStr()
+        s += "\r\n\tMANUFACTER: %s [0x%04X]" %(self.manName, self.manCode,)
+        s += "\r\n\t[MAN PDU: %s]" %(dumpHex(pdu[2:]),)
+        return s
+
+class ADV128UUID(ADVData):
+    def __init__(self, typeid, pdu):
+        super().__init__( typeid, pdu)
+        self.uuid = uuidStr(pdu)
+
+    def __repr__(self):
+        s = self.getTypeStr()
+        s += "\r\n\tUUID: %s " %(self.uuid,)
+        return s
+    
+def build128UUID(typeid, data):
+    return ADV128UUID(typeid, data)
+
+def buildManufacter(typeid, data):
+    return ADVManufacter(typeid, data)
 
 ADV_DISSECTOR_MAP = {
-    0x07: dumpUUID,
-    0xFF: dumpManufacter
+    0x07: build128UUID,
+    0xFF: buildManufacter
 }
 
-def dumpAdvData(data):
+def buildAdvDataTypes(data):
     i = 0
+    ladvs=[]
     while i < len(data):
         advsize  = data[i]           # adv_size
-        advdtype = data[i+1]         # adv data type
-        advpdu   = data[i+2:i+advsize+1]
-        print("[{:02X}]: ".format(advdtype), ADV_DATA_TYPES[advdtype])
+        advtype  = data[i+1]
+        advpdu = data[i+2:i+advsize+1]
+        adv = None
         try:
-            ADV_DISSECTOR_MAP[advdtype](advpdu)
+            adv = ADV_DISSECTOR_MAP[advtype](advtype, advpdu)
         except:
-            print("\t%s" %(dumpHex(advpdu),) )
-            
+            adv = ADVData(advtype, advpdu)
+        ladvs.append(adv)
         i += advsize+1
+    return ladvs
+
+class ADV:
+    def __init__(self, advtype, rssi, addr, addrtype, advs):
+        self.type = advtype
+        self.rssi = rssi
+        self.addr = dumpHex(addr)
+        self.addrtype = addrtype
+        self.advs  = advs
+
+    def __repr__(self):
+        s = "%s\r\n"  %(ADV_TYPES[self.type], )
+        s += "ADDR: %s, ADDTYPE: %s, rssi %s dBm"  %(self.addr, repr(self.addrtype),repr(self.rssi),)
+        return s
+
+    def __str__(self):
+        return self.__repr__()
+
