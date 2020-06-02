@@ -226,24 +226,13 @@ class ADV16UuidAGExpData(ADVData):
         self.uuid16 = unpack("<H", pdu)[0]
         self.rollingId = pdu[2:18]
         self.encMetadata = pdu[18:]
-        # encrypted data...
-        #self.verMajor = (pdu[18] >> 6) & 0x03
-        #self.verMinor = (pdu[18] >> 4) & 0x03
-        #self.resB0 = (pdu[18] & 0x0F)
-        #self.txPower = pdu[19]
-        #self.resB2 = pdu[20]
-        #self.resB3 = pdu[21]
+
 
     def __repr__(self):
         s = self.getTypeStr()
         s += "\r\n\tUUID16: %04X " % (self.uuid16,)
         s += "\r\n\tROLLING ID: %s" % (dumpHex(self.rollingId),)
         s += "\r\n\tENC META: %s" % (dumpHex(self.encMetadata),)
-        #s += "\r\n\tVER: %d.%d " % (self.verMajor, self.verMinor,)
-        #s += "\r\n\tTX POWER: %d " % (self.txPower,)
-        #s += "\r\n\tRES B0: %02X " % (self.resB0,)
-        #s += "\r\n\tRES B2: %02X " % (self.resB2,)
-        #s += "\r\n\tRES B3: %02X " % (self.resB3,)
         return s
 
 class ADV16UuidData(ADVData):
