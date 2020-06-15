@@ -55,51 +55,6 @@ ADV_DATA_TYPES = {
     0xFF: "Manufacturer Specific Data"
 }
 
-GATT_ServS = {
-    0x1800: "Generic Access",
-    0x1811: "Alert Notification Serv",
-    0x1815: "Automation IO",
-    0x180F: "Battery Serv",
-    0x183B: "Binary Sensor",
-    0x1810: "Blood Pressure",
-    0x181B: "Body Composition",
-    0x181E: "Bond Management Serv",
-    0x181F: "Cont Glucose Monitoring",
-    0x1805: "Current Time Serv",
-    0x1818: "Cycling Power",
-    0x1816: "Cycling Speed and Cadence",
-    0x180A: "Device Information",
-    0x183C: "Emergency Configuration",
-    0x181A: "Environmental Sensing",
-    0x1826: "Fitness Machine",
-    0x1801: "Generic Attribute",
-    0x1808: "Glucose",
-    0x1809: "Health Therm",
-    0x180D: "Heart Rate",
-    0x1823: "HTTP Proxy",
-    0x1812: "HumIntDev",
-    0x1802: "Immediate Alert",
-    0x1821: "Indoor Positioning",
-    0x183A: "Insulin Delivery",
-    0x1820: "INET Proto SuppServ",
-    0x1803: "Link Loss",
-    0x1819: "Location and Navigation",
-    0x1827: "Mesh Prov Serv",
-    0x1828: "Mesh Proxy Serv",
-    0x1807: "Next DST Change Serv",
-    0x1825: "Object Transfer Serv",
-    0x180E: "Phone Alert St Serv",
-    0x1822: "Pulse Oximeter Serv",
-    0x1829: "Reconn Config",
-    0x1806: "Ref Time UpdServ",
-    0x1814: "Running Speed and Cadence",
-    0x1813: "Scan Parameters",
-    0x1824: "Transport Discovery",
-    0x1804: "Tx Power",
-    0x181C: "User Data",
-    0x181D: "Weight Scale"
-}
-
 COMPANY_IDENTIFIER = {
     0x079A: "GuangDong Oppo Mob",
     0x072F: "OnePlus Electronics  Co.",
@@ -198,43 +153,154 @@ COMPANY_IDENTIFIER = {
     0x0000: "Ericsson Technology Licensing"
 }
 
+
 def uuidStr(data):
-    uuid="_INVALID_"
-    if len(data)>=16:
+    uuid = "_INVALID_"
+    if len(data) >= 16:
         codes = unpack("<LHHHHL", data)
-        uuid = "%08X-%02X-%02X-%02X-%010X" %(codes[5], codes[4], codes[3], codes[2], codes[0]|codes[1]<<32,)
+        uuid = "%08X-%02X-%02X-%02X-%010X" % (codes[5], codes[4], codes[3], codes[2], codes[0] | codes[1] << 32,)
     return uuid
 
+
 def dumpHex(data):
-    return "".join('{:02X} '.format(a) for a in data)
+    return "".join('{:02X} '.format(a) for a in data)[:-1]
 
-def dumpManufacter(data):
-    manCode = data[0] | data[1] << 8
-    try:
-        manName = COMPANY_IDENTIFIER[manCode]
-    except:
-        manName = "_UNKNOWN_"
-    print("\tMANUFACTER:", manName, "[0x%04X]" %(manCode,))
-    print("\t%s" %(dumpHex(data[2:]),) )
 
-def dumpUUID(data):
-    print("\t%s" %(uuidStr(data),))
+class ADVData:
+    def __init__(self, typeid, pdu):
+        self.typeid = typeid
+        self.pdu = pdu
+
+    def getTypeStr(self):
+        return "\t%s %s" % ("[{:02X}]: ".format(self.typeid), ADV_DATA_TYPES[self.typeid],)
+
+    def __repr__(self):
+        s = self.getTypeStr()
+        s += "\r\n\tdata: [%s]" % (dumpHex(self.pdu),)
+        return s
+
+    def __str__(self):
+        return self.__repr__()
+
+
+class ADVManufacter(ADVData):
+    def __init__(self, typeid, pdu):
+        super().__init__(typeid, pdu)
+        self.manCode = pdu[0] | pdu[1] << 8
+        if self.manCode in COMPANY_IDENTIFIER:
+            self.manName = COMPANY_IDENTIFIER[self.manCode]
+        else:
+            self.manName = "_UNKNOWN_"
+
+    def __repr__(self):
+        s = self.getTypeStr()
+        s += "\r\n\tMANUFACTER: %s [0x%04X]" % (self.manName, self.manCode,)
+        s += "\r\n\t[MAN PDU: %s]" % (dumpHex(pdu[2:]),)
+        return s
+
+
+class ADVUuid128(ADVData):
+    def __init__(self, typeid, pdu):
+        super().__init__(typeid, pdu)
+        self.uuid = uuidStr(pdu)
+
+    def __repr__(self):
+        s = self.getTypeStr()
+        s += "\r\n\tUUID: %s " % (self.uuid,)
+        return s
+
+
+class ADVUuid16(ADVData):
+    def __init__(self, typeid, pdu):
+        super().__init__(typeid, pdu)
+        self.uuid16 = unpack("<H", pdu)[0]
+
+    def __repr__(self):
+        s = self.getTypeStr()
+        s += "\r\n\tUUID16: %04X " % (self.uuid16,)
+        return s
+
+class ADV16UuidAGExpData(ADVData):
+    def __init__(self, typeid, pdu):
+        super().__init__(typeid, pdu)
+        self.uuid16 = unpack("<H", pdu)[0]
+        self.rollingId = pdu[2:18]
+        self.encMetadata = pdu[18:]
+
+
+    def __repr__(self):
+        s = self.getTypeStr()
+        s += "\r\n\tUUID16: %04X " % (self.uuid16,)
+        s += "\r\n\tROLLING ID: %s" % (dumpHex(self.rollingId),)
+        s += "\r\n\tENC META: %s" % (dumpHex(self.encMetadata),)
+        return s
+
+class ADV16UuidData(ADVData):
+    def __init__(self, typeid, pdu):
+        super().__init__(typeid, pdu)
+        self.uuid16 = unpack("<H", pdu)[0]
+        self.data = pdu[2:]
+
+    def __repr__(self):
+        s = self.getTypeStr()
+        s += "\r\n\tUUID16: %04X " % (self.uuid16,)
+        s += "\r\n\tDATA: %s" % (dumpHex(self.rollingId),)
+        return s
+
+
+def buildUuid128(typeid, data):
+    return ADVUuid128(typeid, data)
+
+def buildUuid16(typeid, data):
+    return ADVUuid16(typeid, data)
+
+def buildUuid16Data(typeid, data):
+    if len(data) > 2 and typeid == 0x16 and data[0] == 0x6F and data[1] == 0xFD:
+        return ADV16UuidAGExpData(typeid, data)
+    else:
+        return ADV16UuidData(typeid, data)
+
+def buildManufacter(typeid, data):
+    return ADVManufacter(typeid, data)
+
 
 ADV_DISSECTOR_MAP = {
-    0x07: dumpUUID,
-    0xFF: dumpManufacter
+    0x07: buildUuid128,
+    0x03: buildUuid16,
+    0x16: buildUuid16Data,
+    0xFF: buildManufacter
 }
 
-def dumpAdvData(data):
+
+def buildAdvDataTypes(data):
     i = 0
+    ladvs = []
     while i < len(data):
-        advsize  = data[i]           # adv_size
-        advdtype = data[i+1]         # adv data type
-        advpdu   = data[i+2:i+advsize+1]
-        print("[{:02X}]: ".format(advdtype), ADV_DATA_TYPES[advdtype])
+        advsize = data[i]  # adv_size
+        advtype = data[i + 1]
+        advpdu = data[i + 2:i + advsize + 1]
+        adv = None
         try:
-            ADV_DISSECTOR_MAP[advdtype](advpdu)
+            adv = ADV_DISSECTOR_MAP[advtype](advtype, advpdu)
         except:
-            print("\t%s" %(dumpHex(advpdu),) )
-            
-        i += advsize+1
+            adv = ADVData(advtype, advpdu)
+        ladvs.append(adv)
+        i += advsize + 1
+    return ladvs
+
+
+class ADV:
+    def __init__(self, advtype, rssi, addr, addrtype, advs):
+        self.type = advtype
+        self.rssi = rssi
+        self.addr = dumpHex(addr)
+        self.addrtype = addrtype
+        self.advs = advs
+
+    def __repr__(self):
+        s = "%s\r\n" % (ADV_TYPES[self.type],)
+        s += "ADDR: %s, ADDTYPE: %s, rssi %s dBm" % (self.addr, repr(self.addrtype), repr(self.rssi),)
+        return s
+
+    def __str__(self):
+        return self.__repr__()

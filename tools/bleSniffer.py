@@ -1,6 +1,6 @@
 from ubluetooth import BLE, UUID, FLAG_NOTIFY, FLAG_READ, FLAG_WRITE
 from micropython import const
-from bleADV import ADV_TYPES, dumpHex, dumpAdvData
+from bleADV import ADV_TYPES, ADV, ADVData, buildAdvDataTypes
 
 IRQ_SCAN_RESULT = const(1 << 4)
 IRQ_SCAN_COMPLETE = const(1 << 5)
@@ -10,12 +10,14 @@ def bt_irq(event, data):
         # A single scan result.
         addr_type, addr, adv_type, rssi, adv_data = data
         if adv_type in ADV_TYPES:
-            print(ADV_TYPES[adv_type])
-            print("{addr: ", dumpHex(addr), ", addr_type: ",
-                  repr(addr_type), ", rssi:", repr(rssi), "}")
-            print("RAW ADV_DATA: %s" %(dumpHex(adv_data),) )
-            dumpAdvData(adv_data)
-            print("\r\n")
+            
+            advs = buildAdvDataTypes(adv_data)
+
+            adv = ADV(adv_type, rssi, addr, addr_type, advs)
+            
+            print("\r\n%s" %(repr(adv),))
+            for it in advs:
+                print("\r\n%s" %(str(it)))
 
     elif event == IRQ_SCAN_COMPLETE:
         # Scan duration finished or manually stopped.
